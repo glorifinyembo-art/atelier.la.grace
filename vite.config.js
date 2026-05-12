@@ -5,7 +5,6 @@ export default defineConfig({
   base: '/atelier.la.grace/',
   plugins: [
     react()
-    // ❌ Supprime VitePWA pour ce build
   ],
   server: {
     host: true,

@@ -5,7 +5,9 @@ const StoreContext = createContext()
 
 export const useStore = () => {
   const context = useContext(StoreContext)
-  if (!context) throw new Error('useStore must be used within StoreProvider')
+  if (!context) {
+    throw new Error('useStore must be used within StoreProvider')
+  }
   return context
 }
 
@@ -16,12 +18,11 @@ export const StoreProvider = ({ children }) => {
   const [currency, setCurrency] = useState('CDF')
   const [exchangeRate, setExchangeRate] = useState(2850)
   const [loading, setLoading] = useState(true)
-  
-  // États pour la navigation et l'interface
   const [view, setView] = useState('home')
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [toastMessage, setToastMessage] = useState('')
 
+  // Charger les données (cache + Supabase)
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -89,6 +90,17 @@ export const StoreProvider = ({ children }) => {
   }, [])
 
   // --- Fonctions métier ---
+
+  // ✅ INCÉMENTATION DES VUES
+  const incrementView = async (productId) => {
+    try {
+      await supabase.rpc('increment_views', { row_id: parseInt(productId) })
+    } catch (e) {
+      console.warn('Erreur lors de l\'incrémentation des vues:', e)
+    }
+  }
+
+  // ✅ CALCUL DU PRIX
   const getCalculatedPrice = (p) => {
     if (!p) return 0
     let price = p.basePrice
@@ -107,6 +119,7 @@ export const StoreProvider = ({ children }) => {
     }
   }
 
+  // ✅ FORMATAGE DU PRIX
   const formatDisplayPrice = (price) => {
     if (price === undefined || price === null) price = 0
     const symbol = currency === 'USD' ? ' $' : ' FC'
@@ -116,6 +129,7 @@ export const StoreProvider = ({ children }) => {
     return new Intl.NumberFormat('fr-FR', opts).format(price) + symbol
   }
 
+  // ✅ AJOUTER AU PANIER
   const addToCart = (productId) => {
     setCart(prev => {
       const newCart = [...prev, productId]
@@ -126,6 +140,7 @@ export const StoreProvider = ({ children }) => {
     setTimeout(() => setToastMessage(''), 2000)
   }
 
+  // ✅ SUPPRIMER DU PANIER
   const removeAllFromCart = (productId) => {
     setCart(prev => {
       const newCart = prev.filter(id => id !== productId)
@@ -134,13 +149,19 @@ export const StoreProvider = ({ children }) => {
     })
   }
 
+  // ✅ TOGGLE FAVORIS (Incrémente/Décrémente les likes)
   const toggleFavorite = async (productId) => {
+    const isCurrentlyFavorite = favorites.includes(productId)
+
     setFavorites(prev => {
       let newFavs
-      if (prev.includes(productId)) {
+      if (isCurrentlyFavorite) {
         newFavs = prev.filter(id => id !== productId)
+        // ✅ Décrémenter le like dans Supabase
+        supabase.rpc('increment_likes', { row_id: parseInt(productId), amount: -1 })
       } else {
         newFavs = [...prev, productId]
+        // ✅ Incrémenter le like dans Supabase
         supabase.rpc('increment_likes', { row_id: parseInt(productId), amount: 1 })
       }
       localStorage.setItem('grace_favs', JSON.stringify(newFavs))
@@ -148,6 +169,7 @@ export const StoreProvider = ({ children }) => {
     })
   }
 
+  // ✅ VIDER LE PANIER
   const clearCart = () => {
     setCart([])
     localStorage.removeItem('grace_cart_v2')
@@ -172,7 +194,8 @@ export const StoreProvider = ({ children }) => {
     addToCart,
     removeAllFromCart,
     toggleFavorite,
-    clearCart
+    clearCart,
+    incrementView  // ✅ EXPOSÉ POUR LE COMPOSANT PRODUIT
   }
 
   return (

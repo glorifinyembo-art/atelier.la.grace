@@ -16,19 +16,27 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Faux status bar iOS */
+/*  Bandeau orange : MASQUÉ par défaut (navigateur normal) */
 .ios-top-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: env(safe-area-inset-top, 44px);
-  background: var(--brand-orange);
-  z-index: 9999;
-  pointer-events: none;
+  display: none;
 }
 
-/* espace sous la barre */
+/* Une fois l'application installée (PWA) : bandeau AFFICHÉ */
+@media (display-mode: standalone) {
+  .ios-top-bar {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: env(safe-area-inset-top, 44px);
+    background: var(--brand-orange);
+    z-index: 9999;
+    pointer-events: none;
+  }
+}
+
+/* espace sous la barre (pour tout le monde) */
 .app-safe-top {
   padding-top: env(safe-area-inset-top, 44px);
   min-height: 100vh;

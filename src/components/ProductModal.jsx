@@ -1,5 +1,6 @@
 import { Heart, ArrowLeft } from '@phosphor-icons/react'
 import { useStore } from '../context/StoreContext'
+import { useEffect } from 'react'
 
 export default function ProductModal({ product, onClose }) {
   const {
@@ -8,8 +9,16 @@ export default function ProductModal({ product, onClose }) {
     addToCart,
     favorites,
     toggleFavorite,
-    products
+    products,
+    incrementView
   } = useStore()
+
+  // ✅ Incrémenter les vues à l'ouverture du produit
+  useEffect(() => {
+    if (product) {
+      incrementView(product.id)
+    }
+  }, [product, incrementView])
 
   if (!product) return null
 
@@ -26,7 +35,7 @@ export default function ProductModal({ product, onClose }) {
     <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
       <div className="relative h-[55vh] bg-gray-100 p-4 pb-8">
         <button
-          onClick={() => window.history.back()} // ✅ Nouveau comportement : retour arrière
+          onClick={onClose}
           className="absolute top-6 left-6 z-30 w-10 h-10 rounded-full bg-white/50 backdrop-blur-md text-black flex items-center justify-center shadow-sm"
         >
           <ArrowLeft size={20} weight="bold" />
@@ -67,8 +76,6 @@ export default function ProductModal({ product, onClose }) {
         <button
           onClick={() => {
             addToCart(product.id)
-            // ✅ On NE FERME PAS la modale ici
-            // La modale reste ouverte après l'ajout
           }}
           className="w-full bg-black text-white py-5 rounded-2xl font-bold mb-10 shadow-xl active:scale-[0.98] transition-transform"
         >
@@ -83,7 +90,6 @@ export default function ProductModal({ product, onClose }) {
                 <div
                   key={p.id}
                   onClick={() => {
-                    // On change le hash, le routage fera le reste
                     window.location.hash = `#product/${p.id}`
                   }}
                   className="bg-gray-50 rounded-xl overflow-hidden cursor-pointer active:scale-95 transition"

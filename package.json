@@ -22,6 +22,7 @@
     "gh-pages": "^6.3.0",
     "postcss": "^8.x",
     "tailwindcss": "^3.x",
+    "terser": "^5.47.1",
     "vite": "^5.x"
   }
 }
